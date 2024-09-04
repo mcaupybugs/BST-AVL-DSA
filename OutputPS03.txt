@@ -1,0 +1,15 @@
+Pre-order traversal of BST and AVL tree after week 1:
+BST: [3, 5, 7, 9, 10, 12, 15, 18, 20, 25]
+AVL: [9, 5, 3, 7, 18, 12, 10, 15, 20, 25]
+
+Pre-order traversal of BST and AVL tree after new acceptances in week 2:
+BST: [3, 5, 7, 9, 8, 10, 12, 11, 15, 13, 18, 20, 25, 30]
+AVL: [9, 5, 3, 7, 8, 18, 12, 10, 11, 15, 13, 25, 20, 30]
+
+Pre-order traversal of BST and AVL tree after removing declines:
+BST: [7, 3, 5, 13, 10, 8, 11, 15, 20, 25, 30]
+AVL: [10, 5, 3, 7, 8, 20, 13, 11, 15, 25, 30]
+
+Employee #10 is present in level 0 and its position is 0 from the left.
+Employee #15 is present in level 3 and its position is 5 from the left.
+Employee #3 is present in level 2 and its position is 0 from the left.
