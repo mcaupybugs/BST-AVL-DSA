@@ -1,223 +1,253 @@
-import random
+import re
+
 
 class TreeNode:
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, key):
+        self.key = key
         self.left = None
         self.right = None
-        self.height = 1  # For AVL Tree
+        self.height = 1  # For AVL tree
 
-# Function to insert nodes in BST
-def insert_bst(root, key):
-    if not root:
-        return TreeNode(key)
-    if key < root.value:
-        root.left = insert_bst(root.left, key)
-    else:
-        root.right = insert_bst(root.right, key)
-    return root
 
-# Function to insert nodes in AVL Tree
-def insert_avl(root, key):
-    # Standard BST insertion
-    if not root:
-        return TreeNode(key)
-    if key < root.value:
-        root.left = insert_avl(root.left, key)
-    else:
-        root.right = insert_avl(root.right, key)
-    
-    # Update height of the ancestor node
-    root.height = 1 + max(get_height(root.left), get_height(root.right))
-    
-    # Get the balance factor
-    balance = get_balance(root)
-    
-    # Balance the tree
-    # Left Left Case
-    if balance > 1 and key < root.left.value:
-        return right_rotate(root)
-    
-    # Right Right Case
-    if balance < -1 and key > root.right.value:
-        return left_rotate(root)
-    
-    # Left Right Case
-    if balance > 1 and key > root.left.value:
-        root.left = left_rotate(root.left)
-        return right_rotate(root)
-    
-    # Right Left Case
-    if balance < -1 and key < root.right.value:
-        root.right = right_rotate(root.right)
-        return left_rotate(root)
-    
-    return root
-
-def left_rotate(z):
-    y = z.right
-    T2 = y.left
-    
-    # Perform rotation
-    y.left = z
-    z.right = T2
-    
-    # Update heights
-    z.height = 1 + max(get_height(z.left), get_height(z.right))
-    y.height = 1 + max(get_height(y.left), get_height(y.right))
-    
-    # Return the new root
-    return y
-
-def right_rotate(z):
-    y = z.left
-    T3 = y.right
-    
-    # Perform rotation
-    y.right = z
-    z.left = T3
-    
-    # Update heights
-    z.height = 1 + max(get_height(z.left), get_height(z.right))
-    y.height = 1 + max(get_height(y.left), get_height(y.right))
-    
-    # Return the new root
-    return y
-
-def get_height(root):
-    if not root:
-        return 0
-    return root.height
-
-def get_balance(root):
-    if not root:
-        return 0
-    return get_height(root.left) - get_height(root.right)
-
-# Function for pre-order traversal
-def pre_order_traversal(root):
-    return [root.value] + pre_order_traversal(root.left) + pre_order_traversal(root.right) if root else []
-
-# Function to remove a node from the BST or AVL
-def remove_node(root, key):
-    if not root:
+class BST:
+    def insert(self, root, key):
+        if not root:
+            return TreeNode(key)
+        if key < root.key:
+            root.left = self.insert(root.left, key)
+        else:
+            root.right = self.insert(root.right, key)
         return root
-    
-    if key < root.value:
-        root.left = remove_node(root.left, key)
-    elif key > root.value:
-        root.right = remove_node(root.right, key)
-    else:
-        if not root.left:
-            return root.right
-        elif not root.right:
-            return root.left
+
+    def delete(self, root, key):
+        if not root:
+            return root
+        if key < root.key:
+            root.left = self.delete(root.left, key)
+        elif key > root.key:
+            root.right = self.delete(root.right, key)
+        else:
+            if not root.left:
+                return root.right
+            elif not root.right:
+                return root.left
+            temp = self.get_min_value_node(root.right)
+            root.key = temp.key
+            root.right = self.delete(root.right, temp.key)
+        return root
+
+    def get_min_value_node(self, node):
+        if node is None or node.left is None:
+            return node
+        return self.get_min_value_node(node.left)
+
+    def preorder(self, root):
+        return [root.key] + self.preorder(root.left) + self.preorder(root.right) if root else []
+
+
+class AVL:
+    def insert(self, root, key):
+        if not root:
+            return TreeNode(key)
+        if key < root.key:
+            root.left = self.insert(root.left, key)
+        else:
+            root.right = self.insert(root.right, key)
+
+        root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
+        balance = self.get_balance(root)
+
+        # Left Left Case
+        if balance > 1 and key < root.left.key:
+            return self.right_rotate(root)
+
+        # Right Right Case
+        if balance < -1 and key > root.right.key:
+            return self.left_rotate(root)
+
+        # Left Right Case
+        if balance > 1 and key > root.left.key:
+            root.left = self.left_rotate(root.left)
+            return self.right_rotate(root)
+
+        # Right Left Case
+        if balance < -1 and key < root.right.key:
+            root.right = self.right_rotate(root.right)
+            return self.left_rotate(root)
+
+        return root
+
+    def delete(self, root, key):
+        if not root:
+            return root
+        if key < root.key:
+            root.left = self.delete(root.left, key)
+        elif key > root.key:
+            root.right = self.delete(root.right, key)
+        else:
+            if not root.left:
+                return root.right
+            elif not root.right:
+                return root.left
+            temp = self.get_min_value_node(root.right)
+            root.key = temp.key
+            root.right = self.delete(root.right, temp.key)
+
+        if not root:
+            return root
+
+        root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
+        balance = self.get_balance(root)
+
+        # Left Left Case
+        if balance > 1 and self.get_balance(root.left) >= 0:
+            return self.right_rotate(root)
+
+        # Left Right Case
+        if balance > 1 and self.get_balance(root.left) < 0:
+            root.left = self.left_rotate(root.left)
+            return self.right_rotate(root)
+
+        # Right Right Case
+        if balance < -1 and self.get_balance(root.right) <= 0:
+            return self.left_rotate(root)
+
+        # Right Left Case
+        if balance < -1 and self.get_balance(root.right) > 0:
+            root.right = self.right_rotate(root.right)
+            return self.left_rotate(root)
+
+        return root
+
+    def left_rotate(self, z):
+        y = z.right
+        T2 = y.left
+        y.left = z
+        z.right = T2
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        return y
+
+    def right_rotate(self, z):
+        y = z.left
+        T3 = y.right
+        y.right = z
+        z.left = T3
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+        return y
+
+    def get_height(self, root):
+        if not root:
+            return 0
+        return root.height
+
+    def get_balance(self, root):
+        if not root:
+            return 0
+        return self.get_height(root.left) - self.get_height(root.right)
+
+    def get_min_value_node(self, root):
+        if root is None or root.left is None:
+            return root
+        return self.get_min_value_node(root.left)
+
+    def preorder(self, root):
+        return [root.key] + self.preorder(root.left) + self.preorder(root.right) if root else []
+
+
+# Helper Functions
+
+def read_input(filename):
+    with open(filename, 'r') as file:
+        content = file.read()
         
-        temp = get_min_value_node(root.right)
-        root.value = temp.value
-        root.right = remove_node(root.right, temp.value)
-    
+    acceptances_week1 = re.findall(r'\[(.*?)\]', content)[0].split(', ')
+    acceptances_week1 = [int(x) for x in acceptances_week1]
+
+    new_acceptances_week2 = re.findall(r'\[(.*?)\]', content)[1].split(', ')
+    new_acceptances_week2 = [int(x) for x in new_acceptances_week2]
+
+    declines_week2 = re.findall(r'\[(.*?)\]', content)[2].split(', ')
+    declines_week2 = [int(x) for x in declines_week2]
+
+    return acceptances_week1, new_acceptances_week2, declines_week2
+
+
+
+def write_output(filename, output_lines):
+    with open(filename, 'w') as file:
+        for line in output_lines:
+            file.write(line + "\n")
+
+
+def find_coordinates(root, key, level=0, position=0):
     if not root:
-        return root
-    
-    # Update the height of the current node
-    root.height = 1 + max(get_height(root.left), get_height(root.right))
-    
-    # Check the balance factor and balance the tree
-    balance = get_balance(root)
-    
-    # Balance the tree
-    if balance > 1 and get_balance(root.left) >= 0:
-        return right_rotate(root)
-    
-    if balance > 1 and get_balance(root.left) < 0:
-        root.left = left_rotate(root.left)
-        return right_rotate(root)
-    
-    if balance < -1 and get_balance(root.right) <= 0:
-        return left_rotate(root)
-    
-    if balance < -1 and get_balance(root.right) > 0:
-        root.right = right_rotate(root.right)
-        return left_rotate(root)
-    
-    return root
+        return None
+    if root.key == key:
+        return level, position
+    left = find_coordinates(root.left, key, level + 1, position)
+    if left:
+        return left
+    return find_coordinates(root.right, key, level + 1, position + (1 << level))
 
-def get_min_value_node(root):
-    if root is None or root.left is None:
-        return root
-    return get_min_value_node(root.left)
 
-# Function to find the coordinates of a node in the tree
-def find_coordinates(root, key):
-    queue = [(root, 0, 0)]
-    while queue:
-        node, level, pos = queue.pop(0)
-        if node.value == key:
-            return level, pos
-        if node.left:
-            queue.append((node.left, level + 1, pos * 2))
-        if node.right:
-            queue.append((node.right, level + 1, pos * 2 + 1))
-    return None
+def main():
+    input_file = "inputPS03.txt"
+    output_file = "OutputPS03.txt"
+    week1_acceptances, week2_acceptances, declines = read_input(input_file)
 
-# Read input from file
-with open('inputPS03.txt', 'r') as file:
-    lines = file.readlines()
-    acceptances_week_1 = set(map(int, lines[0].split()))
-    new_acceptances_week_2 = set(map(int, lines[1].split()))
-    declines_week_2 = set(map(int, lines[2].split()))
+    bst = BST()
+    avl = AVL()
 
-# Initial BST and AVL trees with acceptances of week 1
-bst_root = None
-avl_root = None
-for emp in acceptances_week_1:
-    bst_root = insert_bst(bst_root, emp)
-    avl_root = insert_avl(avl_root, emp)
+    bst_root = None
+    avl_root = None
 
-# Output pre-order traversal of BST and AVL after week 1
-bst_pre_order_week_1 = pre_order_traversal(bst_root)
-avl_pre_order_week_1 = pre_order_traversal(avl_root)
+    # Insert week 1 acceptances
+    for num in week1_acceptances:
+        bst_root = bst.insert(bst_root, num)
+        avl_root = avl.insert(avl_root, num)
 
-# Insert new acceptances of week 2
-for emp in new_acceptances_week_2:
-    bst_root = insert_bst(bst_root, emp)
-    avl_root = insert_avl(avl_root, emp)
+    output_lines = []
+    output_lines.append("End of week 1 - Acceptances")
+    output_lines.append(f"Preorder traversal of the constructed BST tree is {bst.preorder(bst_root)}")
+    output_lines.append(f"Preorder traversal of the constructed AVL tree is {avl.preorder(avl_root)}")
 
-# Output pre-order traversal of BST and AVL after inserting new acceptances
-bst_pre_order_acceptance = pre_order_traversal(bst_root)
-avl_pre_order_acceptance = pre_order_traversal(avl_root)
+    # Insert week 2 acceptances
+    for num in week2_acceptances:
+        bst_root = bst.insert(bst_root, num)
+        avl_root = avl.insert(avl_root, num)
 
-# Remove declines from the trees
-for emp in declines_week_2:
-    bst_root = remove_node(bst_root, emp)
-    avl_root = remove_node(avl_root, emp)
+    output_lines.append("End of week 2 – With new acceptances")
+    output_lines.append(f"Preorder traversal of the rearranged BST tree is {bst.preorder(bst_root)}")
+    output_lines.append(f"Preorder traversal of the re-arranged AVL tree is {avl.preorder(avl_root)}")
 
-# Output pre-order traversal of BST and AVL after removing declines
-bst_pre_order_final = pre_order_traversal(bst_root)
-avl_pre_order_final = pre_order_traversal(avl_root)
+    # Remove declines
+    for num in declines:
+        bst_root = bst.delete(bst_root, num)
+        avl_root = avl.delete(avl_root, num)
 
-# Randomly select three employees from the final list
-final_employees = list(acceptances_week_1.union(new_acceptances_week_2) - declines_week_2)
-selected_employees = random.sample(final_employees, 3)
+    output_lines.append("End of week 2 – After declines")
+    output_lines.append(f"Preorder traversal of the rearranged BST tree is {bst.preorder(bst_root)}")
+    output_lines.append(f"Preorder traversal of the re-arranged AVL tree is {avl.preorder(avl_root)}")
 
-# Find coordinates of selected employees
-coordinates = {}
-for emp in selected_employees:
-    coordinates[emp] = find_coordinates(avl_root, emp)
+    # Randomly select three members from the final list
+    import random
+    final_accepted = bst.preorder(bst_root)  # Same list for both BST and AVL since content is identical
+    volunteers = random.sample(final_accepted, 3)
+    output_lines.append(f"Randomly selected three volunteers = {volunteers}")
+    output_lines.append("BST:")
+    for volunteer in volunteers:
+        level, position = find_coordinates(bst_root, volunteer)
+        output_lines.append(f"Employee # {volunteer} is present in level {level} and its position is {position} from the left.")
 
-# Write output to file
-with open('OutputPS03.txt', 'w') as file:
-    file.write("Pre-order traversal of BST and AVL tree after week 1:\n")
-    file.write(f"BST: {bst_pre_order_week_1}\n")
-    file.write(f"AVL: {avl_pre_order_week_1}\n\n")
-    file.write("Pre-order traversal of BST and AVL tree after new acceptances in week 2:\n")
-    file.write(f"BST: {bst_pre_order_acceptance}\n")
-    file.write(f"AVL: {avl_pre_order_acceptance}\n\n")
-    file.write("Pre-order traversal of BST and AVL tree after removing declines:\n")
-    file.write(f"BST: {bst_pre_order_final}\n")
-    file.write(f"AVL: {avl_pre_order_final}\n\n")
-    for emp, (level, pos) in coordinates.items():
-        file.write(f"Employee #{emp} is present in level {level} and its position is {pos} from the left.\n")
+    output_lines.append("AVL:")
+    volunteers = random.sample(final_accepted, 3)
+    for volunteer in volunteers:
+        level, position = find_coordinates(avl_root, volunteer)
+        output_lines.append(f"Employee # {volunteer} is present in level {level} and its position is {position} from the left.")
+    write_output(output_file, output_lines)
 
-# Performance comparison between BST and AVL tree (Optional: This should be documented in report)
+
+if __name__ == "__main__":
+    main()
